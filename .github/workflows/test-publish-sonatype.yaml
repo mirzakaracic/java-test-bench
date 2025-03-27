@@ -1,0 +1,59 @@
+name: publish to sonatype
+
+permissions:
+  # This is required for requesting the OIDC token
+  id-token: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      target-branch:
+        type: choice
+        options:
+          - master
+
+jobs:
+  promote-from-stage-to-prod:
+    runs-on: ${{ vars.BUILD_CONTAINER_DISTRO_VERSION }}
+    steps: 
+        - name: Checkout
+          uses: actions/checkout@v4
+          with:
+            # Fetch the whole history to prevent unrelated history errors
+            fetch-depth: "0"
+            ref: ${{ inputs.target-branch }}
+
+        - name: Setup Java
+          uses: actions/setup-java@v4
+          with:
+            distribution: "semeru" # See 'Supported distributions' for available options
+            java-version: 21
+            gpg-private-key: ${{ secrets.GPG_SECRET_KEY_ORG }}
+            gpg-passphrase: GPG_PASS
+
+        - name: build
+          env:
+            GPG_PASS: ${{ secrets.GPG_PASS_ORG }}
+          run: |
+            mvn clean install -DskipTests gpg:sign
+
+        - name: stage artifacts
+          run: |
+            mkdir -p staging
+            cp target/*.jar staging/
+
+        - name: get-build-name-number
+          id: get-build-name-number
+          run: |
+              # 
+              echo "build-name-number=$(echo 'clients-java-push-to-dev_aerospike-test-bench-jdk21/${{ github.run_id }}') >> $GITHUB_OUTPUT"
+
+        - uses: ./.github/actions/publish-to-sonatype
+          id: publish-to-sonatype
+          with:
+            build-name-number: ${{ steps.get-build-name-number.outputs.build-name-number }}
+            publish-user: ${{ secrets.CICD_USERNAME }}
+            publish-password: ${{ secrets.CICD_PASSWORD }}
+            validation-max-number-checks: ${{ vars.VALIDATION_MAX_NUMBER_CHECKS }}
+            sonatype-domain-name: ${{ vars.SONATYPE_DOMAIN_NAME }}
+        

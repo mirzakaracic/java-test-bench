@@ -1,0 +1,11 @@
+metadata:
+  generation: 3
+  name: test_application
+
+static:
+  client: {}
+  policy: {}
+dynamic: 
+  client: {}
+  policy: {}
+  
