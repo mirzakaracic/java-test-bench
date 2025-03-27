@@ -45,8 +45,7 @@ jobs:
         - name: get-build-name-number
           id: get-build-name-number
           run: |
-              # 
-              echo "build-name-number=$(echo 'clients-java-push-to-dev_aerospike-test-bench-jdk21/${{ github.run_id }}') >> $GITHUB_OUTPUT"
+              echo build-name-number="$(echo 'clients-java-push-to-dev_aerospike-test-bench-jdk21/${{ github.run_id }}')" >> $GITHUB_OUTPUT
 
         - uses: ./.github/actions/publish-to-sonatype
           id: publish-to-sonatype
