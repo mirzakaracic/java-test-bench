@@ -42,6 +42,8 @@ jobs:
             ls -la target/
             mkdir -p {staging,sonatype,github}
             cp target/*.jar staging/
+            cp target/*.pom staging/
+            cp target/*.asc staging/
             cp pom.xml staging/
             ls staging
 
