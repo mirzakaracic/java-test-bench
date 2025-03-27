@@ -39,7 +39,7 @@ jobs:
 
         - name: stage artifacts
           run: |
-            mkdir -p staging
+            mkdir -p {staging,sonatype,github}
             cp target/*.jar staging/
 
         - name: get-build-name-number
