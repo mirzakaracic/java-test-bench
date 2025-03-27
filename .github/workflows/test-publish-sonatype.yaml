@@ -41,6 +41,7 @@ jobs:
           run: |
             mkdir -p {staging,sonatype,github}
             cp target/*.jar staging/
+            ls staging
 
         - name: get-build-name-number
           id: get-build-name-number
