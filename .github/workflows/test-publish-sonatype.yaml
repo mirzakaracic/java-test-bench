@@ -10,7 +10,7 @@ on:
       target-branch:
         type: choice
         options:
-          - master
+          - main
 
 jobs:
   promote-from-stage-to-prod:
@@ -28,12 +28,12 @@ jobs:
           with:
             distribution: "semeru" # See 'Supported distributions' for available options
             java-version: 21
-            gpg-private-key: ${{ secrets.GPG_SECRET_KEY_ORG }}
+            gpg-private-key: ${{ secrets.GPG_SECRET }}
             gpg-passphrase: GPG_PASS
 
         - name: build
           env:
-            GPG_PASS: ${{ secrets.GPG_PASS_ORG }}
+            GPG_PASS: ${{ secrets.GPG_PASS }}
           run: |
             mvn clean install -DskipTests gpg:sign
 
