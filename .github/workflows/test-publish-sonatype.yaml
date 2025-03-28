@@ -41,11 +41,11 @@ jobs:
           run: |
             ls -la target/
             mkdir -p {staging,github}
-            mkdir -p {staging}/net/zimaspace/1.0
-            cp target/*.jar staging/net/zimaspace/1.0
-            cp target/*.pom staging/net/zimaspace/1.0
-            cp target/*.asc staging/net/zimaspace/1.0
-            cp target/*.pom staging/net/zimaspace/1.0
+            mkdir -p staging/net/zimaspace/1.0/
+            cp target/*.jar staging/net/zimaspace/1.0/
+            cp target/*.pom staging/net/zimaspace/1.0/
+            cp target/*.asc staging/net/zimaspace/1.0/
+            cp target/*.pom staging/net/zimaspace/1.0/
             ls staging
 
         - name: get-build-name-number
