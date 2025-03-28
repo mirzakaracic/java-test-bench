@@ -46,10 +46,10 @@ jobs:
               \( -name '*.jar' -o -name '*.jar.asc' -o -name '*.pom' -o -name '*.pom.asc' \) -type f \
             | while read -r file; do
                 # Generate MD5 hash (store just the hash in <file>.md5)
-                md5sum "$file" | awk '{print $1}' > "target/${file}.md5"
+                md5sum "$file" | awk '{print $1}' > "${file}.md5"
                 
                 # Generate SHA1 hash (store just the hash in <file>.sha1)
-                sha1sum "$file" | awk '{print $1}' > "target/${file}.sha1"
+                sha1sum "$file" | awk '{print $1}' > "${file}.sha1"
                 
                 echo "Generated MD5 and SHA1 for: $file"
             done
