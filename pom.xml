@@ -3,19 +3,38 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.aerospike</groupId>
-  <artifactId>aerospike-client-java-test-bench</artifactId>
+  <groupId>net.zimaspace</groupId>
+  <artifactId>java-test-bench</artifactId>
   <version>1.0</version>
-
-  <name>aerospike-client-java-test-bench</name>
+  <description>test bench</description>
+  <name>java-test-bench</name>
   <!-- FIXME change it to the project's website -->
   <url>http://www.example.com</url>
-
+  <licenses>
+    <license>
+      <name>The Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+  <scm>
+    <connection>scm:git:git@github.com:mirzakaracic/java-test-bench.git</connection>
+    <url>https://github.com/aerospike/aerospike-client-java</url>
+  </scm>
+  <developers>
+    <developer>
+      <name>Mirza Karacic</name>
+      <email>mkaracic@aerospike.com</email>
+      <organization>Aerospike</organization>
+      <organizationUrl>https://aerospike.com/</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+    </developer>
+  </developers>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
   </properties>
-
   <dependencyManagement>
     <dependencies>
       <dependency>
