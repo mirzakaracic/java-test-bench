@@ -103,4 +103,4 @@ jobs:
             release-notes: ${{ steps.get-release-notes.outputs.release-notes }}
             github-token: ${{ secrets.CLIENT_BOT_PAT }}
             build-name-number: ${{ steps.get-build-name-number-json.outputs.build-name-number-json }} # json format
-            artifact-version: "1.0"  # json format
+            artifact-version: '["1.0"]'
