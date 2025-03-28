@@ -58,13 +58,13 @@ jobs:
           run: |
             ls -la target/
             mkdir -p {staging,github,sonatype}
-            mkdir -p staging/net/zimaspace/1.0/java-test-bench/
-            cp target/*.jar staging/net/zimaspace/1.0/java-test-bench
-            cp target/*.pom staging/net/zimaspace/1.0/java-test-bench
-            cp target/*.asc staging/net/zimaspace/1.0/java-test-bench
-            cp target/*.pom staging/net/zimaspace/1.0/java-test-bench
-            cp target/*.md5 staging/net/zimaspace/1.0/java-test-bench
-            cp target/*.sha1 staging/net/zimaspace/1.0/java-test-bench
+            mkdir -p staging/net/zimaspace/java-test-bench/1.0/
+            cp target/*.jar staging/net/zimaspace/java-test-bench/1.0/
+            cp target/*.pom staging/net/zimaspace/java-test-bench/1.0/
+            cp target/*.asc staging/net/zimaspace/java-test-bench/1.0/
+            cp target/*.pom staging/net/zimaspace/java-test-bench/1.0/
+            cp target/*.md5 staging/net/zimaspace/java-test-bench/1.0/
+            cp target/*.sha1 staging/net/zimaspace/java-test-bench/1.0/
             ls staging
 
         - name: get-build-name-number
