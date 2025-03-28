@@ -10,8 +10,7 @@ on:
       target-branch:
         type: choice
         options:
-          - main
-
+          - main    
 jobs:
   promote-from-stage-to-prod:
     runs-on: ${{ vars.BUILD_CONTAINER_DISTRO_VERSION }}
@@ -54,9 +53,12 @@ jobs:
                 echo "Generated MD5 and SHA1 for: $file"
             done
 
-        - name: stage artifacts
+        - name: Debug show staged artifacts
           run: |
             ls -la target/
+
+        - name: stage artifacts
+          run: |
             mkdir -p {staging,github,sonatype}
             mkdir -p staging/net/zimaspace/java-test-bench/1.0/
             cp target/*.jar staging/net/zimaspace/java-test-bench/1.0/
@@ -65,6 +67,7 @@ jobs:
             cp target/*.pom staging/net/zimaspace/java-test-bench/1.0/
             cp target/*.md5 staging/net/zimaspace/java-test-bench/1.0/
             cp target/*.sha1 staging/net/zimaspace/java-test-bench/1.0/
+
             ls staging
 
         - name: get-build-name-number
