@@ -100,7 +100,7 @@ runs:
       uses: softprops/action-gh-release@v2
       with:
         token: ${{ inputs.github-token }}
-        tag_name: Release ${{ steps.get-artifact-version.outputs.artifact-version }}${{ steps.get-jdk-version.outputs.jdk-version == 'jdk8' && '-jdk8' || '' }}
+        tag_name: ${{ steps.get-artifact-version.outputs.artifact-version }}${{ steps.get-jdk-version.outputs.jdk-version == 'jdk8' && '-jdk8' || '' }}
         body: |
           Changes for release ${{ steps.get-artifact-version.outputs.artifact-version }}
           "${{ inputs.release-notes }}"
