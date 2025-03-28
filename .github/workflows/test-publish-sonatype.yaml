@@ -75,14 +75,14 @@ jobs:
           run: |
               echo build-name-number="$(echo 'clients-java-push-to-dev_aerospike-test-bench-jdk21/${{ github.run_id }}')" >> $GITHUB_OUTPUT
 
-        - uses: ./.github/actions/publish-to-sonatype
-          id: publish-to-sonatype
-          with:
-            build-name-number: ${{ steps.get-build-name-number.outputs.build-name-number }}
-            publish-user: ${{ secrets.CICD_USERNAME }}
-            publish-password: ${{ secrets.CICD_PASSWORD }}
-            validation-max-number-checks: ${{ vars.VALIDATION_MAX_NUMBER_CHECKS }}
-            sonatype-domain-name: ${{ vars.SONATYPE_DOMAIN_NAME }}
+        #- uses: ./.github/actions/publish-to-sonatype
+        #  id: publish-to-sonatype
+        #  with:
+        #    build-name-number: ${{ steps.get-build-name-number.outputs.build-name-number }}
+        #    publish-user: ${{ secrets.CICD_USERNAME }}
+        #    publish-password: ${{ secrets.CICD_PASSWORD }}
+        #    validation-max-number-checks: ${{ vars.VALIDATION_MAX_NUMBER_CHECKS }}
+        #    sonatype-domain-name: ${{ vars.SONATYPE_DOMAIN_NAME }}
        
         - name: Generate release notes
           id: get-release-notes
@@ -92,11 +92,15 @@ jobs:
             echo "${RELEASE_NOTES}" >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT           
 
+        - id: get-build-name-number-json
+          run: |
+            echo build-name-number-json=$(echo "${{ toJSON(steps.get-build-name-number.outputs.build-name-number) }}" >> $GITHUB_OUTPUT
+
         # Publishing release to github
         # Note this action knows how to process json internally. It expects inputs to be in json format
         - uses: ./.github/actions/publish-to-github
           with:
             release-notes: ${{ steps.get-release-notes.outputs.release-notes }}
             github-token: ${{ secrets.CLIENT_BOT_PAT }}
-            build-name-number: ${{ steps.get-build-name-number.outputs.build-name-number }} # json format
-            artifact-version: 1.0   # json format
+            build-name-number: ${{ steps.get-build-name-number-json.outputs.build-name-number-json }} # json format
+            artifact-version: "1.0"  # json format
