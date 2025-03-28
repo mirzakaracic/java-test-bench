@@ -63,6 +63,8 @@ jobs:
             cp target/*.pom staging/net/zimaspace/1.0/
             cp target/*.asc staging/net/zimaspace/1.0/
             cp target/*.pom staging/net/zimaspace/1.0/
+            cp target/*.md5 staging/net/zimaspace/1.0/
+            cp target/*.sha1 staging/net/zimaspace/1.0/
             ls staging
 
         - name: get-build-name-number
