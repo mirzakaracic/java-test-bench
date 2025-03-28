@@ -39,7 +39,7 @@ runs:
       shell: bash
       run: |
         # Building array from json input
-        JDK_VERSIONS=($(echo "${{ inputs.build-name-number }}" | jq -r '.[] | match("jdk[^/]+").string'))
+        JDK_VERSIONS=($(echo '${{ inputs.build-name-number }}' | jq -r '.[] | match("jdk[^/]+").string'))
 
         # Creating count of number of unique jdk versions
         UNIQUE_COUNT=$(printf "%s\n" "${JDK_VERSIONS[@]}" | sort -u | wc -l)
