@@ -94,8 +94,8 @@ jobs:
 
         - id: get-build-name-number-json
           run: |
-            echo build-name-number-json='${{ toJSON(steps.get-build-name-number.outputs.build-name-number) }}' >> $GITHUB_OUTPUT
-
+            echo build-name-number-json=$(echo "${{ steps.get-build-name-number.outputs.build-name-number }}" | jq -R '[.]') >> $GITHUB_OUTPUT
+             
         # Publishing release to github
         # Note this action knows how to process json internally. It expects inputs to be in json format
         - uses: ./.github/actions/publish-to-github
