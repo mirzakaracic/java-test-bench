@@ -40,7 +40,8 @@ jobs:
         - name: stage artifacts
           run: |
             ls -la target/
-            mkdir -p {staging,sonatype,github}
+            mkdir -p {staging,github}
+            mkdir -p {sonatype}/net/zimaspace/1.0
             cp target/*.jar staging/
             cp target/*.pom staging/
             cp target/*.asc staging/
