@@ -83,4 +83,20 @@ jobs:
             publish-password: ${{ secrets.CICD_PASSWORD }}
             validation-max-number-checks: ${{ vars.VALIDATION_MAX_NUMBER_CHECKS }}
             sonatype-domain-name: ${{ vars.SONATYPE_DOMAIN_NAME }}
-        
+       
+        - name: Generate release notes
+          id: get-release-notes
+          run: |
+            RELEASE_NOTES=$(git log $(git describe --tags --abbrev=0)..HEAD --pretty=format:"- %s")
+            echo "release-notes<<EOF" >> $GITHUB_OUTPUT
+            echo "${RELEASE_NOTES}" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT           
+
+        # Publishing release to github
+        # Note this action knows how to process json internally. It expects inputs to be in json format
+        - uses: ./.github/actions/publish-to-github
+          with:
+            release-notes: ${{ steps.get-release-notes.outputs.release-notes }}
+            github-token: ${{ secrets.CLIENT_BOT_PAT }}
+            build-name-number: ${{ steps.get-build-name-number.outputs.build-name-number }} # json format
+            artifact-version: 1.0   # json format
