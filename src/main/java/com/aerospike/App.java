@@ -1,85 +1,156 @@
 package com.aerospike;
 
-import java.util.ArrayList;
+import com.aerospike.config.ClientConfig;
+import com.aerospike.config.Config;
+import com.aerospike.config.ReadConfig;
+import com.aerospike.config.WriteConfig;
+import com.aerospike.policies.ClientPolicy;
+import com.aerospike.policies.Policy;
+import com.aerospike.policies.ReadPolicy;
+import com.aerospike.policies.WritePolicy;
 
-import com.aerospike.client.*;
-import com.aerospike.client.lua.LuaStreamLib.read;
-import com.aerospike.client.policy.ClientPolicy;
-import com.aerospike.client.policy.Policy;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
-/**
- * Hello world!
+
+class MergedCache {
+    Map<Integer, Policy> configCache;
+    Policy sourcePolicy;
+
+    public MergedCache(Policy sourcePolicy) {
+        this.configCache = new HashMap<>();
+        this.sourcePolicy = sourcePolicy;
+    }
+}
+
+/*
+The driving idea behind split cache is that conifg + user + default = hash. We build and generate policy
+for config + default. Will merge with user provided policy if user passes in policy on operation.
+If the user does pass in the policy we are going to compute hash for passed in policy. This will have to be
+computed on every operation since we can't save/store the cache. This is because users are making changes to
+class attributes directly and are not using setters. The second part of the hash config + default will be looked up
+since in the first cache.
  */
 public class App {
-    public static void main(String[] args) {
-        var clientPolicy = new ClientPolicy();
-        clientPolicy.timeout = 500;
-        clientPolicy.failIfNotConnected = true;
-        clientPolicy.maxConnsPerNode = 300;
-        clientPolicy.maxSocketIdle = 14;
-        clientPolicy.useServicesAlternate = true;
+    Map<String, MergedCache> configCache = new HashMap<>();
+    // Cache to store config objects found in the config file. Things like Write, Read, Query, .etc
+    // This cache is finite in size and will never exceed number of configuration defined in the file
 
-        // Create connection to the database
-        var client = new AerospikeClient(clientPolicy, new Host("localhost", 3100), new Host("localhost", 3101),
-                new Host("localhost", 3102), new Host("localhost", 3103), new Host("localhost", 3104)); 
+    public void put(Policy policy) {
+        MergedCache cache = configCache.get(WriteConfig.class.getName());
+        Policy mergedDefaultPolicy = cache.sourcePolicy;
+        Map<Integer, Policy> mergedPolicy = cache.configCache;
 
-        // Deleting everything in test namespace 
-        client.truncate(null, "test", null, null);
+        if (policy == null) {
+            var key = Objects.hash(mergedDefaultPolicy.hashCode());
+            if (mergedPolicy.containsKey(key)) {
+                System.out.println("Found key from previous put operation" + mergedPolicy.get(key));
+            } else {
+                System.out.println("Hash not found using default + config ");
+                mergedPolicy.put(Objects.hash(mergedDefaultPolicy.hashCode()), mergedDefaultPolicy);
+            }
+        } else {
+            var hash = mergedDefaultPolicy.hashCode();
+            var inputHash = policy.hashCode();
 
-        var testKey = new Key("test", "demo", 22);
-        var writePolicy = client.getWritePolicyDefault();
-        writePolicy.maxRetries = 3;
-
-        // inserts record
-        client.put(null, testKey, new Bin("test", Value.get(100000)));
-
-        var readPolicy = client.getReadPolicyDefault();
-        readPolicy.timeoutDelay = 500;
-        readPolicy.sendKey = true;
-        
-        var response = client.get(readPolicy, testKey);
-        System.out.println(response.getInt("test"));
-        client.close();
-
-
-
-
-
-/* 
-        var count = 1;
-
-        var keys = new ArrayList<Key>();
-        for (var i = 0; i < count; i++) {
-            var key = new Key("test", "demo", i);
-            client.put(null, key, new Bin("bin", Value.get(1000)));
-            keys.add(key);
+            if (mergedPolicy.containsKey(Objects.hash(hash, inputHash))) {
+                System.out.println("Found key from previous put operation" + mergedPolicy.get(Objects.hash(hash, inputHash)));
+            } else {
+                System.out.println("Hash not found using default + config + user policy");
+                mergedPolicy.put(Objects.hash(hash, inputHash), policy.fuse(mergedDefaultPolicy));
+            }
         }
+    }
+    public int get(Policy policy) {
+        MergedCache cache = configCache.get(ReadConfig.class.getName());
+        Policy mergedDefaultPolicy = cache.sourcePolicy;
+        Map<Integer, Policy> mergedPolicy = cache.configCache;
 
-        var transaction = new Txn();
-        var policy = client.getReadPolicyDefault();
-        policy.sendKey = true;
-        policy.txn = transaction;
+        if (policy == null) {
+            var key = Objects.hash(mergedDefaultPolicy.hashCode());
+            if (mergedPolicy.containsKey(key)) {
+                System.out.println("Found key from previous get operation" + mergedPolicy.get(key));
+            } else {
+                System.out.println("Hash not found using default + config ");
+                mergedPolicy.put(Objects.hash(mergedDefaultPolicy.hashCode()), mergedDefaultPolicy);
+            }
+        } else {
+            var hash = mergedDefaultPolicy.hashCode();
+            var inputHash = policy.hashCode();
 
-        for (Key key : keys) {
-            try {
-                client.get(policy, key);
-            } catch (AerospikeException e) {
-                System.out.printf("Failed to read record with key %s%n", key.userKey.toString());
+            if (mergedPolicy.containsKey(Objects.hash(hash, inputHash))) {
+                System.out.println("Found key from previous get operation" + mergedPolicy.get(Objects.hash(hash, inputHash)));
+            } else {
+                System.out.println("Hash not found using default + config + user policy");
+                mergedPolicy.put(Objects.hash(hash, inputHash), policy.fuse(mergedDefaultPolicy));
             }
         }
 
-        var anotherKey = new Key("test", "demo", 0);
-        client.put(null, anotherKey, new Bin("bin", 999));
-       
-        var status = client.commit(transaction);
-        if (status == CommitStatus.OK) {
-            System.out.println("Transaction committed successfully.");
-        } else {
-            System.out.println("Transaction failed to commit.");
-        }
-
-        client.close();
-        */
+        return 0;
     }
 
+    public void onLoad(List<Config> serailized) {
+        for (Config config : serailized) {
+            String operationType = config.getClass().getName();
+            configCache.put(operationType, new MergedCache(fetchPolicy(config)));
+        }
+    }
+
+    public Policy fetchPolicy(Config config) {
+        if (config instanceof WriteConfig) {
+            WriteConfig writeConfig = (WriteConfig) config;
+            var socketTimeout = writeConfig.socketTimeout == null ? 0 : writeConfig.socketTimeout;
+            var generation = writeConfig.generation == null ? 0 : writeConfig.generation;
+            return new WritePolicy(socketTimeout, generation);
+        }
+        if (config instanceof ClientConfig) {
+            ClientConfig clientConfig = (ClientConfig) config;
+            return new ClientPolicy(clientConfig.closeTimeout,clientConfig.maxConnsPerNode,clientConfig.asyncMinConnsPerNode,clientConfig.macSocketIdle);
+        }
+        if (config instanceof ReadConfig) {
+            ReadConfig readConfig = (ReadConfig) config;
+            var totalTimeout = readConfig.totalTime == null ? 0 : readConfig.totalTime;
+            var timeoutDelay = readConfig.timeoutDelay == null ? 0 : readConfig.timeoutDelay;
+
+            return new ReadPolicy(timeoutDelay, totalTimeout);
+        }
+
+        else
+            return null;
+    }
+
+
+    public static void main(String[] args) {
+        App app = new App();
+        // --- Code section that is representing configuration serialized from file or a service aka config objects
+        var writeConfig = new WriteConfig();
+        var readConfig = new ReadConfig();
+        writeConfig.socketTimeout = 55;
+        readConfig.timeoutDelay = 5;
+
+        var userWritePolicy = new WritePolicy(45, 11);
+        var userReadPolicy = new ReadPolicy();
+        userReadPolicy.totalTimeout = 15;
+        List<Config> serializedConfigs = List.of(writeConfig, readConfig);
+        app.onLoad(serializedConfigs);
+        // ---
+
+        // --- Performing operation
+        app.put(null);
+        app.put(null);
+        app.put(userWritePolicy);
+        app.put(userWritePolicy);
+
+        app.get(null);
+        app.get(null);
+        app.get(null);
+        app.get(userReadPolicy);
+        app.get(userReadPolicy);
+        userReadPolicy.totalTimeout = 12;
+        app.get(userReadPolicy);
+        app.get(userReadPolicy);
+        // ---
+    }
 }
